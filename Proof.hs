@@ -1,5 +1,7 @@
 module Proof(Proof,
+             Context,
              emptyProof,
+             emptyContext,
              alreadyProved) where
 
 import Data.Map as M

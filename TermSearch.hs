@@ -15,28 +15,20 @@ findAppls old new = appliedRes
     oldNewPairs = [(x, y) | x <- old, y <- new]
     appliedRes = concatMap tryApply oldNewPairs
 
-tryApply :: (Declaration, Declaration) -> [Declaration]
-tryApply (Decl t1 (Arrow l r), Decl t2 tp) = case tp == l of
-  True -> [Decl (Application t1 t2) r]
-  False -> []
-tryApply (Decl t1 tp, Decl t2 (Arrow l r)) = case tp == l of
-  True -> [Decl (Application t1 t2) r]
-  False -> []
-tryApply _ = []
-
-
 data VarSource = VarSource Int
 
 newSource = VarSource 0
 
 freshVar :: VarSource -> (VarSource, Term)
-freshVar (VarSource ind) = (VarSource (ind+1), Variable$ TermVariable $ "x" ++ show ind)
+freshVar (VarSource ind) = (VarSource (ind+1), var $ termVar $ "x" ++ show ind)
 
 findTerm :: Type -> Maybe Proof
 findTerm t = findProof newSource t emptyContext emptyProof
 
 findProof :: VarSource -> Type -> Context -> Proof -> Maybe Proof
-findProof vs v@(TypeVariable x) c pf = case alreadyProved v pf of
+findProof v t c pf = Nothing
+
+{-findProof vs v@(TypeVariable x) c pf = case alreadyProved v pf of
   True -> Just pf
   False -> Nothing
 findProof vs (Arrow l r) c ds = --error "FIND ARROW PROOF"
@@ -47,3 +39,4 @@ findProof vs (Arrow l r) c ds = --error "FIND ARROW PROOF"
   case arrowPf of
     Just pf -> Just $ Proof (decl (Abstraction (typeVar fr) l (term $ result pf)) (Arrow l r)) [] c
     _ -> Nothing
+-}
