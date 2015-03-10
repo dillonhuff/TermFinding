@@ -26,6 +26,9 @@ data Type
   | Arrow Type Type
     deriving (Eq, Ord)
 
+tv = TypeVariable
+ar = Arrow
+
 instance Show Type where
   show (TypeVariable n) = n
   show (Arrow left right) = "(" ++ (show left) ++ " -> " ++ (show right) ++ ")"
@@ -70,6 +73,8 @@ makeProof d ls c = Proof d [] c
 result (Proof ds _ _) = ds
 
 saturate :: [Declaration] -> [Declaration] -> [Declaration]
+--saturate _ _ = error "NNOOOOOO"
+saturate old [] = []
 saturate old new = let newResults = findAppls old new in
   newResults ++ (saturate (old ++ new) newResults)
 
@@ -90,8 +95,9 @@ tryApply _ = []
 
 data ProofLine
      = ByVar Declaration
-     | ByAppl Declaration Declaration Declaration
-     | ByAbst Declaration TermVariable Type Proof
+     | ByAppl Declaration
+     | ByAbst Declaration
+     | IDK Declaration
        deriving (Eq, Ord, Show)
 
 data VarSource = VarSource Int
@@ -101,14 +107,18 @@ newSource = VarSource 0
 freshVar :: VarSource -> (VarSource, Term)
 freshVar (VarSource ind) = (VarSource (ind+1), Variable$ TermVariable $ "x" ++ show ind)
 
+findTerm :: Type -> Maybe Proof
+findTerm t = findProof newSource t emptyContext []
+
 findProof :: VarSource -> Type -> Context -> [Declaration] -> Maybe Proof
 findProof vs v@(TypeVariable x) c ds = case contains v c of
   True -> Just $ makeProof (decl (var v c) v) ds c
   False -> Nothing
-findProof vs (Arrow l r) c ds =
+findProof vs (Arrow l r) c ds = --error "FIND ARROW PROOF"
   let (newVS, fr) = freshVar vs
       newRes = saturate ds [decl fr l]
-      arrowPf = findProof newVS r (addVar l (typeVar fr) c) (ds ++ newRes) in
+      arrowPf = error $ show newRes --findProof newVS r (addVar l (typeVar fr) c) (ds ++ newRes)
+      in
   case arrowPf of
     Just pf -> Just $ Proof (decl (Abstraction (typeVar fr) l (term $ result pf)) (Arrow l r)) [] c
     _ -> Nothing
